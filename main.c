@@ -82,6 +82,7 @@ int main(int argc, char* argv[]){
 
   int overhead_per_row = associativity * (tag_size + 1);
   int total_overhead = num_rows * overhead_per_row / 8; //divide by 8 for bytes
+  unsigned long long phys_bytes = (unsigned long long)physical_mem << 20; // MB -> bytes
   
   int implementation_memory =(cache_size*1024) + total_overhead;
   double implementaion_memory_kb = implementation_memory / 1024;
@@ -98,17 +99,21 @@ int main(int argc, char* argv[]){
   printf("Cost:\t\t\t\t\t%.2lf @ $0.07 per KB",cost);
   
   //Physical Memory Calculations
-  unsigned long long phys_pages = phys_bytes / 4096;
-  unsigned long long system_pages = (unsiegned long long )(phys_pages * (physical_mem_used / 100.0));
-  int pte_bits = 1 + log2(phys_pages); //valid bit + number of bits to address physical pages
-  unsigned long  long va_pages_per_proc * fileCount * pte_bits;
-  unsigned long long total_pt_bytes = total_pt_bits / 8;
+  unsigned long long phys_pages = phys_bytes / 4096ULL;
+  unsigned long long system_pages = (unsigned long long)(phys_pages * (physical_mem_used / 100.0));
+  int pte_bits = 1 + (int)log2(phys_pages); //valid bit + number of bits to address physical pages
+  unsigned long long va_pages_per_proc = 512ULL * 1024ULL;
+  unsigned long long total_pt_bits = va_pages_per_proc * (unsigned long long)fileCount * (unsigned long long)pte_bits;
+  unsigned long long total_pt_bytes = total_pt_bits / 8ULL;
 
   printf("\n\n***** Physical Memory Calculated Values *****\n\n");
   printf("Number of Physical Pages :\t\t%llu\n", phys_pages);
-  printf("Number of Pages for System:\t\t%llu\n( %.2f *llu = %llu)\n", system_pages, physical_mem_used/100.0, phys_pages, system_pages);
-  printf("Size of Page Table Entry:\t\t\t%d bits\n (1 valid bit + %d bits for physical page number)\n", pte_bits, pte_bits - 1);
-  printf("Total Ram for Page Tables:\t\t\t%llu bytes\n", total_pt_bytes,fileCount, pte_bits);
+  printf("Number of Pages for System:\t\t%llu ( %.2f * %llu = %llu )\n",
+       system_pages, physical_mem_used/100.0, phys_pages, system_pages);
+  printf("Size of Page Table Entry:\t\t%d bits (1 valid bit + %d for physical page number)\n",
+       pte_bits, pte_bits - 1);
+  printf("Total Ram for Page Tables:\t\t%llu bytes (512K entries * %d .trc files * %d / 8)\n",
+       total_pt_bytes, fileCount, pte_bits);
   return 0;
   
 }
