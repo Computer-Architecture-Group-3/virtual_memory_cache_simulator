@@ -108,11 +108,11 @@ int main(int argc, char* argv[]){
 
   printf("\n\n***** Physical Memory Calculated Values *****\n\n");
   printf("Number of Physical Pages :\t\t%llu\n", phys_pages);
-  printf("Number of Pages for System:\t\t%llu ( %.2f * %llu = %llu )\n",
+  printf("Number of Pages for System:\t\t%llu \n",
        system_pages, physical_mem_used/100.0, phys_pages, system_pages);
-  printf("Size of Page Table Entry:\t\t%d bits (1 valid bit + %d for physical page number)\n",
+  printf("Size of Page Table Entry:\t\t%d bits \n",
        pte_bits, pte_bits - 1);
-  printf("Total Ram for Page Tables:\t\t%llu bytes (512K entries * %d .trc files * %d / 8)\n",
+  printf("Total Ram for Page Tables:\t\t%llu bytes \n",
        total_pt_bytes, fileCount, pte_bits);
   return 0;
   
