@@ -4,16 +4,19 @@
 #include <math.h>
 
 #define FILE_NUM 3 //you must accept 1 to 3 trace files
+static int is_pow2_ull(unsigned long long x){
+  return x && ((x & (x - 1)) == 0);
+}
 
 int main(int argc, char* argv[]){
 
-  int cache_size = 0;
-  int block_size = 0;
-  int associativity = 0;
-  char replacement_policy[15];
-  int physical_mem = 0;
-  double physical_mem_used = 0;
-  int instruction = 0;
+  int cache_size = 0; //-s 
+  int block_size = 0; //-b
+  int associativity = 0; //-a
+  char replacement_policy[15]; // -r 
+  int physical_mem = 0; // -p
+  double physical_mem_used = 0; // -u
+  int instruction = 0; //-n
   char* filenames [FILE_NUM];
   int fileCount= 0;
 
@@ -65,7 +68,7 @@ int main(int argc, char* argv[]){
   printf("Physical Memory:\t\t\t%d\n", physical_mem);
   printf("Physical Memory Used by System:\t\t%.1lf%%\n", physical_mem_used); 
   printf("Instructions / Time Slice:\t\t%d\n", instruction);
-
+  // Calculate cache parameters
   int num_blocks = (cache_size*1024)/block_size; //convert to bytes
 
   int num_rows = num_blocks / associativity;
@@ -94,7 +97,20 @@ int main(int argc, char* argv[]){
   printf("Implementation Memory Size:\t\t%.2lf KB (%d bytes)\n",implementaion_memory_kb, implementation_memory);
   printf("Cost:\t\t\t\t\t%.2lf @ $0.07 per KB",cost);
   
+  //Physical Memory Calculations
+  unsigned long long phys_pages = phys_bytes / 4096;
+  unsigned long long system_pages = (unsiegned long long )(phys_pages * (physical_mem_used / 100.0));
+  int pte_bits = 1 + log2(phys_pages); //valid bit + number of bits to address physical pages
+  unsigned long  long va_pages_per_proc * fileCount * pte_bits;
+  unsigned long long total_pt_bytes = total_pt_bits / 8;
+
+  printf("\n\n***** Physical Memory Calculated Values *****\n\n");
+  printf("Number of Physical Pages :\t\t%llu\n", phys_pages);
+  printf("Number of Pages for System:\t\t%llu\n( %.2f *llu = %llu)\n", system_pages, physical_mem_used/100.0, phys_pages, system_pages);
+  printf("Size of Page Table Entry:\t\t\t%d bits\n (1 valid bit + %d bits for physical page number)\n", pte_bits, pte_bits - 1);
+  printf("Total Ram for Page Tables:\t\t\t%llu bytes\n", total_pt_bytes,fileCount, pte_bits);
   return 0;
+  
 }
 
 
