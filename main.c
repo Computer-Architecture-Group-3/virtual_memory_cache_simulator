@@ -10,16 +10,20 @@ static int is_pow2_ull(unsigned long long x){
 
 int main(int argc, char* argv[]){
 
-  int cache_size = 0; //-s 
+  int cache_size = 0; //-s KB
   int block_size = 0; //-b
   int associativity = 0; //-a
-  char replacement_policy[15]; // -r 
-  int physical_mem = 0; // -p
+  char replacement_policy[15]=""; // -r 
+  int physical_mem = 0; // -p MB
   double physical_mem_used = 0; // -u
-  int instruction = 0; //-n
-  char* filenames [FILE_NUM];
+  int instruction = -1; //-n
+  char* filenames [FILE_NUM]; //-f
   int fileCount= 0;
 
+  if(argc < 2){
+    printf("Usage: VMCacheSim.exe -s <cacheKB> -b <blocksize> -a <associativity> -r <rr/rnd> -p <physmemMB> -u<mem used> -f <file1> <file2>... ");
+    return 1;
+  }
 
   /*restrictions for command line stuff need to be added*/
   
@@ -41,7 +45,7 @@ int main(int argc, char* argv[]){
     }else if(strcmp(argv[i], "-p") == 0){       //physical memory
       physical_mem = atoi(argv[++i]);
     }else if(strcmp(argv[i], "-u") == 0){       //physical mem used by OS
-      physical_mem_used = atoi(argv[++i]);
+      physical_mem_used = atoll(argv[++i]);
     }else if(strcmp(argv[i], "-n") == 0){       //instructions / time slice
       instruction = atoi(argv[++i]);
     }else if(strcmp(argv[i], "-f") == 0){       //trace file name
@@ -52,6 +56,40 @@ int main(int argc, char* argv[]){
        }
       
     }
+  }
+
+  //validating inputs
+  if(cache_size < 8 || cache_size > 8192){
+    printf("Error: Cache size (-s) must be between 8KB and 8192KB.\n ");
+    return 1;
+  }
+  if(block_size < 8 || block_size > 64){
+    printf("Error: Block size (-b) must be between 8 bytes and 64 bytes.\n ");
+    return 1;
+  }
+  if(!(associativity == 1 || associativity == 2 || associativity == 4 || associativity == 8 || associativity == 16 )){
+    printf("Error: Associativity (-a) must be 1, 2, 4, 8, 16.\n");
+    return 1;
+  }
+  if(strcmp(replacement_policy, "Round Robin") != 0 && strcmp(replacement_policy, "Random") != 0){
+    printf("Error: Replacement policy (-r) must be rr or rnd.\n");
+    return 1;
+  }
+  if(physical_mem < 128 || physical_mem > 4096){
+    printf("Error: Physical memory (-p) must be between 128MB and 4096MB.\n ");
+    return 1;
+  }
+  if(physical_mem_used < 0 || physical_mem_used > 100){
+    printf("Error: Physical memory used (-u) must be between 0%% and 100%%.\n ");
+    return 1;
+  }
+  if(instruction != -1 && instruction < 1){
+    printf("Error: Instruction (-n) must be >=1 or -1 for max.\n");
+    return 1;
+  }
+  if(fileCount < 1 || fileCount > 3){
+    printf("Error: There must be 1 to 3 files using -f.\n");
+    return 1;
   }
 
   printf("Cache Simulator - CS 3853 - Team #03\n\n");
@@ -81,7 +119,7 @@ int main(int argc, char* argv[]){
   int tag_size = phys_mem_bits - offset - index_bits; 
 
   int overhead_per_row = associativity * (tag_size + 1);
-  int total_overhead = num_rows * overhead_per_row / 8; //divide by 8 for bytes
+  int total_overhead = ceil((double)num_rows * overhead_per_row / 8.0); //divide by 8 for bytes
   unsigned long long phys_bytes = (unsigned long long)physical_mem << 20; // MB -> bytes
   
   int implementation_memory =(cache_size*1024) + total_overhead;
