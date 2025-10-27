@@ -21,7 +21,7 @@ int main(int argc, char* argv[]){
   int fileCount= 0;
 
   if(argc < 2){
-    printf("Usage: VMCacheSim.exe -s <cacheKB> -b <blocksize> -a <associativity> -r <rr/rnd> -p <physmemMB> -u<mem used> -f <file1> <file2>... ");
+    printf("Usage: VMCacheSim.exe -s <cacheKB> -b <blocksize> -a <associativity> -r <rr/rnd> -p <physmemMB> -u<mem used> -f <file1> -f <file2>... ");
     return 1;
   }
 
@@ -49,10 +49,8 @@ int main(int argc, char* argv[]){
     }else if(strcmp(argv[i], "-n") == 0){       //instructions / time slice
       instruction = atoi(argv[++i]);
     }else if(strcmp(argv[i], "-f") == 0){       //trace file name
-       if(i + 1 < argc && argv[i + 1][0] != '-'){
         if(fileCount < FILE_NUM){
           filenames[fileCount++] = argv[++i];
-        }else {break;}
        }
       
     }
@@ -95,7 +93,7 @@ int main(int argc, char* argv[]){
   printf("Cache Simulator - CS 3853 - Team #03\n\n");
   printf("Trace File(s):\n");
   for(int i = 0; i < fileCount; i++){
-  printf("%s\n", filenames[i]);
+  printf("\t%s\n", filenames[i]);
  
 }
   printf("\n***** Cache Input Parameters *****\n\n");
@@ -103,14 +101,13 @@ int main(int argc, char* argv[]){
   printf("Block Size:\t\t\t\t%d bytes\n", block_size);
   printf("Associativity:\t\t\t\t%d\n", associativity);
   printf("Replacement Policy:\t\t\t%s\n", replacement_policy);
-  printf("Physical Memory:\t\t\t%d\n", physical_mem);
+  printf("Physical Memory:\t\t\t%d MB\n", physical_mem);
   printf("Physical Memory Used by System:\t\t%.1lf%%\n", physical_mem_used); 
   printf("Instructions / Time Slice:\t\t%d\n", instruction);
+
   // Calculate cache parameters
-  int num_blocks = (cache_size*1024)/block_size; //convert to bytes
-
+  int num_blocks = (cache_size*1024)/block_size; //1024 to convert to bytes
   int num_rows = num_blocks / associativity;
-
   int index_bits = (int)log2(num_rows);
   
   //tag bit calculation
@@ -119,7 +116,7 @@ int main(int argc, char* argv[]){
   int tag_size = phys_mem_bits - offset - index_bits; 
 
   int overhead_per_row = associativity * (tag_size + 1);
-  int total_overhead = ceil((double)num_rows * overhead_per_row / 8.0); //divide by 8 for bytes
+  int total_overhead = ceil((double)num_rows * overhead_per_row / 8.0) ; //divide by 8 for bytes
   unsigned long long phys_bytes = (unsigned long long)physical_mem << 20; // MB -> bytes
   
   int implementation_memory =(cache_size*1024) + total_overhead;
@@ -129,12 +126,12 @@ int main(int argc, char* argv[]){
 
   printf("\n***** Cache Calculated Values *****\n\n");
   printf("Total # Blocks:\t\t\t\t%d\n", num_blocks);
-  printf("Tag Size:\t\t\t\t%d bits\n",tag_size);
+  printf("Tag Size:\t\t\t\t%d bits\n", tag_size);
   printf("Index Size:\t\t\t\t%d bits\n", index_bits);
   printf("Total # Rows:\t\t\t\t%d\n", num_rows);
   printf("Overhead Size:\t\t\t\t%d bytes\n", total_overhead);
-  printf("Implementation Memory Size:\t\t%.2lf KB (%d bytes)\n",implementaion_memory_kb, implementation_memory);
-  printf("Cost:\t\t\t\t\t%.2lf @ $0.07 per KB",cost);
+  printf("Implementation Memory Size:\t\t%.2lf KB (%d bytes)\n", implementaion_memory_kb, implementation_memory);
+  printf("Cost:\t\t\t\t\t$%.2lf @ $0.07 per KB",cost);
   
   //Physical Memory Calculations
   unsigned long long phys_pages = phys_bytes / 4096ULL;
@@ -146,14 +143,12 @@ int main(int argc, char* argv[]){
 
   printf("\n\n***** Physical Memory Calculated Values *****\n\n");
   printf("Number of Physical Pages :\t\t%llu\n", phys_pages);
-  printf("Number of Pages for System:\t\t%llu \n",
-       system_pages, physical_mem_used/100.0, phys_pages, system_pages);
-  printf("Size of Page Table Entry:\t\t%d bits \n",
-       pte_bits, pte_bits - 1);
-  printf("Total Ram for Page Tables:\t\t%llu bytes \n",
-       total_pt_bytes, fileCount, pte_bits);
+  printf("Number of Pages for System:\t\t%llu \n", system_pages);
+  printf("Size of Page Table Entry:\t\t%d bits \n", pte_bits);
+  printf("Total Ram for Page Tables:\t\t%llu bytes \n", total_pt_bytes);
+
+
   return 0;
-  
 }
 
 
