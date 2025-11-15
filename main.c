@@ -2,10 +2,93 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
+#include <stdint.h>
 
 #define FILE_NUM 3 //you must accept 1 to 3 trace files
+#define PAGE_SIZE 4096
+#define VA_PAGES_PER_PROC (512ULL * 1024ULL)
+
+
 static int is_pow2_ull(unsigned long long x){
   return x && ((x & (x - 1)) == 0);
+}
+//Struc for milestone 2
+
+typedef struct {
+  unsigned long long vpn; //virtual page number
+  unsigned long long ppn; //physical page number
+} MapEntry;
+
+typedef struct {
+  MapEntry *arr; //array of entries
+  size_t used; //number of valid entries
+  size_t cap; //capacity of the array
+} PageTable;
+
+// Initialize page table
+static void pt_init(PageTable *pt){
+  pt->arr = NULL;
+  pt->used = 0;
+  pt->cap = 0;
+}
+
+//Free page table memory
+static void pt_free(PageTable *pt){
+  free(pt->arr);
+  pt->arr = NULL;
+  pt->used = 0;
+  pt->cap = 0;
+}
+
+//Linear search for vpn in page table
+static long pt_find(PageTable *pt, unsigned long long vpn){
+  for(size_t i = 0; i < pt->used; i++){
+    if(pt->arr[i].vpn == vpn){
+      return (long)i;
+    }
+  }
+  return -1; //not found
+}
+//add a new mapping to the page table
+static void pt_push(PageTable *pt, unsigned long long vpn, unsigned long long ppn){
+  if(pt->used == pt->cap){
+    size_t new_cap = (pt->cap == 0) ? 1 : pt->cap * 2;
+    MapEntry *tmp = realloc(pt->arr, new_cap * sizeof(MapEntry));
+    if(!tmp){
+      fprintf(stderr, "Error: Memory allocation failed in pt_push.\n");
+      exit(1);
+    }
+    pt->arr = tmp;
+    pt->cap = new_cap;
+  }
+  pt->arr[pt->used].vpn = vpn;
+  pt->arr[pt->used].ppn = ppn;
+  pt->used++;
+}
+static int read_vaddr_from_line(const char *line, unsigned long long *out_addr) {
+    const char *p = line;
+
+    // Skip leading spaces
+    while (*p && isspace((unsigned char)*p)) {
+        p++;
+    }
+    if (*p == 'R' || *p == 'W' || *p == 'r' || *p == 'w') {
+        p++;
+        while (*p && isspace((unsigned char)*p)) {
+            p++;
+        }
+    }
+    char *endptr = NULL;
+    unsigned long long val = strtoull(p, &endptr, 16);
+
+    if (endptr == p) {
+        // No valid hex digits were found
+        return 0;
+    }
+
+    *out_addr = val;
+    return 1;
 }
 
 int main(int argc, char* argv[]){
@@ -140,15 +223,74 @@ int main(int argc, char* argv[]){
   unsigned long long va_pages_per_proc = 512ULL * 1024ULL;
   unsigned long long total_pt_bits = va_pages_per_proc * (unsigned long long)fileCount * (unsigned long long)pte_bits;
   unsigned long long total_pt_bytes = total_pt_bits / 8ULL;
+  unsigned long long user_pages = (phys_pages > system_pages) ? (phys_pages - system_pages) : 0ULL;
 
   printf("\n\n***** Physical Memory Calculated Values *****\n\n");
   printf("Number of Physical Pages :\t\t%llu\n", phys_pages);
   printf("Number of Pages for System:\t\t%llu \n", system_pages);
   printf("Size of Page Table Entry:\t\t%d bits \n", pte_bits);
   printf("Total Ram for Page Tables:\t\t%llu bytes \n", total_pt_bytes);
+// Milestone 2: Virtual Memory Simulation 
+  FILE* fp[FILE_NUM] = {0};
+    for(int i=0;i<fileCount;i++){
+        fp[i] = fopen(filenames[i], "r");
+        if(!fp[i]){
+            fprintf(stderr, "Warning: cannot open %s — skipping this file.\n", filenames[i]);
+        }
+    }
+    PageTable pt [FILE_NUM];
+    for(int i = 0;i < fileCount; i++){
+        pr_init(&pt[i]);
+    }
+    //Counters for VM simulation
+    unsigned long long page_table_hits = 0;
+    unsigned long long pages_from_free = 0;
+    unsigned long long total_page_faults = 0;
+    unsigned long long virtual_pages_mapped = 0;
 
+    //Physical page allcator state
+    unsigned long long free_ppn_left = user_pages; //how many physical pages are free
+    unsigned long long next_ppn = 0; //next physical page number to allocate 
+
+    char line[256];
+
+    if (instruction >= 0){
+      //read each file until EOF
+      for (int i = 0; i < fileCount; i++){
+        if(!fp[i]) continue;
+        while(fgets(line, sizeof(line), fp[i])){
+          unsigned long long va = 0;
+          if(!read_vaddr_from_line(line, &va)){
+            continue;
+          }
+          unsigned long long vpn = va >> 12; //page size is 4KB = 2^12
+          long idx = pt_find(&pt[i], vpn);
+          if(idx >= 0){
+            //page table hit
+            page_table_hits++;
+            virtual_pages_mapped++;
+          }else{
+            //Not mapped yet
+            if (free_ppn_left > 0){
+              pt_push(&pt[i], vpn, next_ppn++);
+              free_ppn_left--;
+              pages_from_free++;
+              virtual_pages_mapped++;
+            }else{
+              //No physical pages left => page fault
+              total_page_faults++;
+              virtual_pages_mapped++;
+            }
+              //we still have a free physical page so map this virtual page to it
+          }
+        }
+      }
+    }
+  
 
   return 0;
-}
+  
+  }
+
 
 
