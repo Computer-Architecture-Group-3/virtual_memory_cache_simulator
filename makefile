@@ -1,9 +1,18 @@
 CC = gcc
+CFLAGS = -c -Wall
+LFLAGS = -lm
 
-VMCacheSim.exe: main.o
-	$(CC) main.c -o VMCacheSim.exe -lm
+TARGET = VMCacheSim.exe
+SOURCES = $(wildcard *.c)
+OBJECTS = $(SOURCES:.c=.o)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -o $(TARGET) $(LFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm *.o
-	rm VMCacheSim.exe
+	rm -f *.o
+	rm -f $(TARGET)
 

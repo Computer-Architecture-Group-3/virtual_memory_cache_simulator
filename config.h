@@ -7,9 +7,12 @@
 typedef struct Config {
   Cache cache;
   VMemory vmemory;
+  int instruction;
+  int fileCount;
+  char* filenames[3];
 
 } Config;
 
-void Config_init(Config* config);
+void config_init(Config* config);
 
 #endif

@@ -3,7 +3,7 @@
 #include "cache.h"
 #include "vmemory.h"
 
-void Config_init(Config* config) {
+void config_init(Config* config) {
   if (!config) {
     // TODO add message
     return;
