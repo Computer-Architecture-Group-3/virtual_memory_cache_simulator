@@ -133,11 +133,6 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  // uncomment when ready
-  // config_init(config);
-
-  /*restrictions for command line stuff need to be added*/
-
   // parse command line arguments
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-s") == 0) {  // cache size
@@ -383,7 +378,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // --- Output final Milestone 2 stats ---
+  // Output final Milestone 2 stats
   printf("\n***** VIRTUAL MEMORY SIMULATION RESULTS *****\n\n");
   printf("Physical Pages Used By SYSTEM: %lu\n", system_pages);
   printf("Pages Available to User: %lu\n\n", user_pages);
