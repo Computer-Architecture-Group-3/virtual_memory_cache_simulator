@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define FILE_NUM 3              // Accept 1 to 3 trace files
 #define PAGE_SIZE 4096
@@ -133,6 +134,64 @@ int parse_dst_src_line(const char* line,
     }
 
     return 1;
+}
+typedef enum{
+    RP_RR, //Round robin
+    RP_RANDOM //RANDOM
+} ReplacementPolicy;
+
+typedef struct {
+    int valid;
+    unsigned long long tag;
+} CacheLine;
+
+typedef struct {
+    CacheLine* lines;
+    int next_victim;
+} CacheSet;
+
+typedef struct {
+    int s; // bit index
+    int b; //bit offset
+    int E; //lines per set
+    int S; //number of set
+    ReplacementPolicy policy;
+    CacheSet* set;
+    unsigned long long hits;
+    unsigned long long misses;
+    unsigned long long evictions;
+    
+} Cache;
+
+static void cache_init(Cache* c, int s, int b, int E, ReplacementPolicy policy_{
+    c->s = s;
+    c->b = b;
+    c->E = E;
+    c->S = 1 << s;
+    c->policy = policy;
+    c->hits = c->misses = c->evictions = 0;
+    c->sets = (CacheSet*)malloc(sizeof(CacheSet) * c->S);
+    if (!c->sets) {
+        fprintf(stderr, "Error: malloc for cache sets failed.\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < c->S; i++) {
+        c->sets[i].lines = (CacheLine*)malloc(sizeof(CacheLine) * E);
+        if (!c->sets[i].lines) {
+            fprintf(stderr, "Error: malloc for cache lines failed.\n");
+            exit(1);
+        }
+        c->sets[i].next_victim = 0;
+        for (int j = 0; j < E; j++) {
+            c->sets[i].lines[j].valid = 0;
+            c->sets[i].lines[j].tag = 0;
+        }
+    }
+})
+typedef struct {
+    int cache_size_kb;
+    int block_size;
 }
 
 int main(int argc, char* argv[]) {
