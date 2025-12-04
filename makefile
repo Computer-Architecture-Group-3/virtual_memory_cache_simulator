@@ -40,11 +40,26 @@ clean:
 	$(RM) $(TARGET)
 
 
+run: $(TARGET)
+	@echo.
+	@echo ==============================================================================================
+	@echo Running $(TARGET) with arguments: $(ARGS) $(TRACEFILES)
+	@echo ==============================================================================================
+	@-$(TARGET) $(ARGS) $(TRACEFILES)
+	@echo.
+
 # this will test the programs with the same arguments
 # usage 'make test ARGS="arg1 arg2 arg3"'
 # only use for windows
 test: $(TARGET)
+	@echo.
+	@echo ==============================================================================================
 	@echo Running $(TARGET) with arguments: $(ARGS) $(TRACEFILES)
+	@echo ==============================================================================================
 	@-$(TARGET) $(ARGS) $(TRACEFILES)
+	@echo.
+	@echo ==============================================================================================
 	@echo Running example with arguments: $(ARGS) $(TRACEFILES)
+	@echo ==============================================================================================
 	@-$(EXAMPLE) $(ARGS) $(TRACEFILES)
+	@echo.
