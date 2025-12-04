@@ -22,6 +22,9 @@ EXAMPLE = $(BINDIR)$(SEP)VMCacheSim_v1.0$(EXE)
 SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
 
+# for the test target
+TRACEFILES := $(foreach f,$(FILES),-f .\trace_files\$(f))
+
 #default
 all: $(TARGET)
 
@@ -41,7 +44,7 @@ clean:
 # usage 'make test ARGS="arg1 arg2 arg3"'
 # only use for windows
 test: $(TARGET)
-	@echo Running $(TARGET) with arguments: $(ARGS)
-	@-$(TARGET) $(ARGS)
-	@echo Running example with arguments: $(ARGS)
-	@-$(EXAMPLE) $(ARGS)
+	@echo Running $(TARGET) with arguments: $(ARGS) $(TRACEFILES)
+	@-$(TARGET) $(ARGS) $(TRACEFILES)
+	@echo Running example with arguments: $(ARGS) $(TRACEFILES)
+	@-$(EXAMPLE) $(ARGS) $(TRACEFILES)
