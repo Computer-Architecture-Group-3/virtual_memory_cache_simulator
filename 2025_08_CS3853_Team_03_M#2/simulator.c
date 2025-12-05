@@ -569,7 +569,7 @@ unsigned long long unused_blocks = total_blocks - used_blocks;
 
 double overhead_per_block =((double)overhead_per_row / associativity) / 8.0;  
 double unused_kb = (unused_blocks * (cache.block_size + overhead_per_block)) / 1024.0;
-double total_cache_kb = (cache_size) + (total_overhead / 1024.0);
+double total_cache_kb = (cache_size) + (total_overhead / 1024.0); // or just use implementation_memor_kb
 double waste = unused_kb * 0.07;
 
 
@@ -587,7 +587,7 @@ printf("Miss Rate:\t\t\t%.4lf%%\n", miss_rate);
 printf("CPI:\t\t\t\t%.2f Cycles/Instruction (%llu)\n",cpi, num_instructions);
 
 
-printf("Unused Cache Space:\t\t%.2lf KB / %.2lf KB = %.2lf%%  Waste: $%.2lf\n",unused_kb, total_cache_kb,implementation_memory_kb, waste);
+printf("Unused Cache Space:\t\t%.2lf KB / %.2lf KB = %.2lf%%  Waste: $%.2lf\n",unused_kb, total_cache_kb,total_cache_kb,( unused_kb/total_cache_kb) * 100.0, waste);
 printf("Unused Cache Blocks:\t\t%llu / %llu\n", unused_blocks, total_blocks);
 return 0;
 }
